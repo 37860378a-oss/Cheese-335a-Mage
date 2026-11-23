@@ -18,6 +18,10 @@ Esta es una primera build experimental, no una versión certificada. No se ha pr
 
 El TOC conserva `Interface: 30300`, que corresponde al cliente 3.3.5. La descripción original "Cataclysm Visual Alerts" era texto informativo, no prueba de que el addon requiera Cataclysm.
 
+## Código del cambio
+
+El parche experimental está disponible en [`patches/charls-3.3.5a-compat.patch`](patches/charls-3.3.5a-compat.patch). Se aplica sobre la carpeta del addon original y modifica `APISpellActivationOverlay.lua`, `ActionButton.lua` y `Cheese.toc`.
+
 ## Instalación para pruebas
 
 1. Cerrá el juego.
