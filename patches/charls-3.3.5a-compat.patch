@@ -1,0 +1,232 @@
+--- a/Cheese/APISpellActivationOverlay.lua
++++ b/Cheese/APISpellActivationOverlay.lua
+@@ -1,6 +1,10 @@
+ local band = bit.band;
+ local CreateFrame = CreateFrame;
+ local GetActionInfo = GetActionInfo;
++local GetSpellInfo = GetSpellInfo;
++local GetSpellBookItemName = GetSpellBookItemName;
++local GetActionText = GetActionText;
++local BOOKTYPE_SPELL = BOOKTYPE_SPELL or "spell";
+ local lshift = bit.lshift;
+ local next = next;
+ local OVERLAY_GLOW_SPELL_MAP = CHEESE_OVERLAY_GLOW_SPELL_MAP;
+@@ -8,6 +12,8 @@
+ local OVERLAY_MAP = CHEESE_OVERLAY_MAP;
+ local OVERLAY_TABLE = CHEESE_OVERLAY_TABLE;
+ local OVERLAYS_UPPER_BOUND = CHEESE_OVERLAYS_UPPER_BOUND;
++local overlayMapByName = {};
++local glowSpellMapByName = {};
+ local pairs = pairs;
+ local PlayerFrame = PlayerFrame;
+ local rshift = bit.rshift;
+@@ -43,6 +49,56 @@
+ local eventFrame1 = CreateFrame("Frame");
+ local eventFrame2 = CreateFrame("Frame");
+ 
++-- Compatibility fallback: keep the original numeric IDs as the primary key,
++-- and use localized spell names only when the client does not provide a usable ID.
++local function BuildNameLookups()
++	for name in pairs(overlayMapByName) do overlayMapByName[name] = nil; end
++	for name in pairs(glowSpellMapByName) do glowSpellMapByName[name] = nil; end
++	local overlayMap = OVERLAY_MAP();
++	for spellID in pairs(overlayMap) do
++		local spellName = GetSpellInfo(spellID);
++		if ( spellName and not overlayMapByName[spellName] ) then
++			overlayMapByName[spellName] = spellID;
++		end
++	end
++	local glowMap = OVERLAY_GLOW_SPELL_MAP();
++	for spellID in pairs(glowMap) do
++		local spellName = GetSpellInfo(spellID);
++		if ( spellName and not glowSpellMapByName[spellName] ) then
++			glowSpellMapByName[spellName] = spellID;
++		end
++	end
++end
++
++local function ResolveActionSpellID(action, actionType, id, subType, globalID)
++	if ( globalID and OVERLAY_GLOW_SPELL_MAP()[globalID] ) then
++		return globalID;
++	end
++	if ( actionType ~= "spell" ) then
++		return nil;
++	end
++	local spellName;
++	if ( id and GetSpellBookItemName ) then
++		spellName = GetSpellBookItemName(id, BOOKTYPE_SPELL);
++	end
++	if ( not spellName and GetActionText ) then
++		spellName = GetActionText(action);
++	end
++	return spellName and glowSpellMapByName[spellName] or nil;
++end
++
++function Cheese_GetActionInfo(action)
++	local actionType, id, subType, globalID = GetActionInfo(action);
++	return actionType, id, subType, ResolveActionSpellID(action, actionType, id, subType, globalID);
++end
++
++local function ResolveAuraSpellID(name, spellID)
++	if ( spellID and OVERLAY_MAP()[spellID] ) then
++		return spellID;
++	end
++	return name and overlayMapByName[name] or nil;
++end
++
+ local function AddOverlayGlow(globalID)
+ 	local overlayedCount = spellsOverlayed[globalID];
+ 	if ( not overlayedCount ) then
+@@ -164,30 +220,28 @@
+ 	end
+ end
+ 
+-local function eventFrame1_OnEventActionbarSlotChanged(self, event, action)
+-	if ( action ~= 0 ) then
+-		local actionType, id, subType, globalID = GetActionInfo(action);
+-		if ( actionType == "spell" ) then
+-			if ( actionButtons[action] ~= globalID ) then
+-				ChangeAction(action, globalID);
+-			end
+-		else
+-			if ( actionButtons[action] ) then
+-				ChangeAction(action, nil);
+-			end
++local function ScanActionSlot(action)
++	local actionType, id, subType, globalID = Cheese_GetActionInfo(action);
++	if ( actionType == "spell" ) then
++		if ( actionButtons[action] ~= globalID ) then
++			ChangeAction(action, globalID);
+ 		end
+ 	else
+-		for action=1, NUM_ACTION_BUTTONS do
+-			local actionType, id, subType, globalID = GetActionInfo(action);
+-			if ( actionType == "spell" ) then
+-				if ( actionButtons[action] ~= globalID ) then
+-					ChangeAction(action, globalID);
+-				end
+-			else
+-				if ( actionButtons[action] ) then
+-					ChangeAction(action, nil);
+-				end
+-			end
++		if ( actionButtons[action] ) then
++			ChangeAction(action, nil);
++		end
++	end
++end
++
++local function eventFrame1_OnEventActionbarSlotChanged(self, event, action)
++	if ( event == "SPELLS_CHANGED" ) then
++		BuildNameLookups();
++	end
++	if ( event == "ACTIONBAR_SLOT_CHANGED" and action and action ~= 0 ) then
++		ScanActionSlot(action);
++	else
++		for slot=1, NUM_ACTION_BUTTONS do
++			ScanActionSlot(slot);
+ 		end
+ 	end
+ end
+@@ -197,6 +251,7 @@
+ 	if ( unitID == unit ) then
+ 		do
+ 			local name, _, _, count, _, _, _, _, _, _, spellID = UnitBuff(unit, 1);
++			spellID = ResolveAuraSpellID(name, spellID);
+ 			if ( name ) then
+ 				local overlayMap = OVERLAY_MAP();
+ 				local overlayTable;
+@@ -217,6 +272,7 @@
+ 					end
+ 					j=j+1;
+ 					name, _, _, count, _, _, _, _, _, _, spellID = UnitBuff(unit, j);
++					spellID = ResolveAuraSpellID(name, spellID);
+ 				until not name
+ 			end
+ 		end
+@@ -233,9 +289,10 @@
+ 
+ local function eventFrame1_OnEventPlayerLogin(self)
+ 	eventFrame1:UnregisterEvent("PLAYER_LOGIN");
++	BuildNameLookups();
+ 	do
+ 		for action=1, NUM_ACTION_BUTTONS do
+-			local actionType, id, subType, globalID = GetActionInfo(action);
++			local actionType, id, subType, globalID = Cheese_GetActionInfo(action);
+ 			if ( actionType == "spell" ) then
+ 				SetAction(action, globalID);
+ 			end
+@@ -243,9 +300,14 @@
+ 	end
+ 	eventFrame1:SetScript("OnEvent", eventFrame1_OnEventActionbarSlotChanged);
+ 	eventFrame1:RegisterEvent("ACTIONBAR_SLOT_CHANGED");
++	eventFrame1:RegisterEvent("SPELLS_CHANGED");
++	eventFrame1:RegisterEvent("PLAYER_LEVEL_UP");
++	eventFrame1:RegisterEvent("ACTIONBAR_PAGE_CHANGED");
++	eventFrame1:RegisterEvent("UPDATE_BONUS_ACTIONBAR");
+ 	do
+ 		local unit = PlayerFrame.unit;
+ 		local name, _, _, count, _, _, _, _, _, _, spellID = UnitBuff(unit, 1);
++		spellID = ResolveAuraSpellID(name, spellID);
+ 		if ( name ) then
+ 			local overlayMap = OVERLAY_MAP();
+ 			local overlayTable;
+@@ -263,6 +325,7 @@
+ 				end
+ 				j=j+1;
+ 				name, _, _, count, _, _, _, _, _, _, spellID = UnitBuff(unit, j);
++				spellID = ResolveAuraSpellID(name, spellID);
+ 			until not name
+ 		end
+ 	end
+--- a/Cheese/ActionButton.lua
++++ b/Cheese/ActionButton.lua
+@@ -39,7 +39,7 @@
+ end
+ 
+ function CheeseActionButton_UpdateOverlayGlow(self)
+-	local spellType, id, subType, globalID = GetActionInfo(self.action);
++	local spellType, id, subType, globalID = Cheese_GetActionInfo(self.action);
+ 	if ( spellType == "spell" and Cheese_IsSpellOverlayed(globalID) ) then
+ 		CheeseActionButton_ShowOverlayGlow(self);
+ 	else
+@@ -89,8 +89,8 @@
+ 
+ function CheeseActionButton_OnEvent(self, event)
+ 	if ( event == "ACTIONBAR_PAGE_CHANGED" or event == "UPDATE_BONUS_ACTIONBAR" ) then
+-		local actionType, id, subType, globalID = GetActionInfo(self.action);
+-		if ( actionType == "spell" and globalID == 0 ) then
++		local actionType, id, subType, globalID = Cheese_GetActionInfo(self.action);
++		if ( actionType == "spell" and not globalID ) then
+ 			CheeseActionButton_HideOverlayGlow(self);
+ 		end
+ 		return;
+@@ -100,14 +100,14 @@
+ hooksecurefunc("ActionButton_OnEvent", CheeseActionButton_OnEvent);
+ 
+ function CheeseActionButton_OnEventOverlayGlowShow(self, arg1)
+-	local actionType, id, subType, globalID = GetActionInfo(self.action);
++	local actionType, id, subType, globalID = Cheese_GetActionInfo(self.action);
+ 	if ( actionType == "spell" and globalID == arg1 ) then
+ 		CheeseActionButton_ShowOverlayGlow(self);
+ 	end
+ end
+ 
+ function CheeseActionButton_OnEventOverlayGlowHide(self, arg1)
+-	local actionType, id, subType, globalID = GetActionInfo(self.action);
++	local actionType, id, subType, globalID = Cheese_GetActionInfo(self.action);
+ 	if ( actionType == "spell" and globalID == arg1 ) then
+ 		CheeseActionButton_HideOverlayGlow(self);
+ 	end
+--- a/Cheese/Cheese.toc
++++ b/Cheese/Cheese.toc
+@@ -1,7 +1,7 @@
+ ## Interface: 30300
+-## Notes: Cataclysm Visual Alerts
++## Notes: Spell activation alerts for all classes (Wrath 3.3.5a adaptation in progress)
+ ## SavedVariablesPerCharacter: cheeseDisplaySpellActivationOverlays, cheeseSpellActivationOverlayOpacity
+-## Version: 1.0
++## Version: 1.1-charls
+ Data.lua
+ APIAnimation.xml
+ APISpellActivationOverlay.lua
