@@ -1,27 +1,31 @@
-# Technical audit — supplied Cheese archive
+# Auditoría técnica — archivo original de Cheese
 
-This audit describes the archive supplied for the project; it is not a claim that the addon has been tested in-game.
+Esta auditoría describe el archivo proporcionado para el proyecto. No significa que el addon haya sido probado dentro del juego.
 
-## Findings
+## Hallazgos
 
-- Addon folder: `Cheese/`
-- TOC: `Cheese.toc`
-- TOC interface declaration: `30300`
-- TOC notes: `Cataclysm Visual Alerts`
-- Main data file: `Data.lua`
-- Spell activation logic: `APISpellActivationOverlay.lua`
-- Overlay and action-button handling: `SpellActivationOverlay.lua`, `ActionButton.lua`
-- The archive includes BLP overlay textures, including Arcane Missiles, Brain Freeze, Fingers of Frost, and Hot Streak.
-- The spell map is a broad multi-class map, not a Mage-only 3.3.5a dataset.
+- Carpeta del addon: `Cheese/`
+- Archivo TOC: `Cheese.toc`
+- Declaración de interfaz en el TOC: `30300`
+- Notas del TOC: `Cataclysm Visual Alerts`
+- Archivo principal de datos: `Data.lua`
+- Lógica de activación de hechizos: `APISpellActivationOverlay.lua`
+- Gestión de alertas y botones de acción: `SpellActivationOverlay.lua`, `ActionButton.lua`
+- El archivo incluye texturas BLP para las alertas, entre ellas Arcane Missiles, Brain Freeze, Fingers of Frost y Hot Streak.
+- El mapa de hechizos es amplio y contempla varias clases; no es un conjunto de datos exclusivo para Mago en 3.3.5a.
 
-## Consequences
+## Qué significa esto
 
-Changing only the TOC interface number would not establish compatibility. The spell IDs, proc aura IDs, action-bar scanning, event handling, and texture references must be checked against the 3.3.5a client.
+Cambiar únicamente el número de interfaz del TOC no garantiza compatibilidad. Es necesario comprobar los IDs de hechizos, los IDs de auras de proc, la detección de las barras de acción, el manejo de eventos y las referencias a texturas contra el cliente 3.3.5a.
 
-## Next implementation steps
+## Próximos pasos de implementación
 
-- Verify the exact 3.3.5a spell and aura IDs for each Mage proc.
-- Keep only valid Wrath-era Mage proc mappings in the Mage adaptation layer.
-- Verify rank handling and spellbook/action-slot detection at low levels.
-- Check all API calls against the 3.3.5a client.
-- Run in-game tests at representative leveling milestones and for all three talent trees.
+- Verificar los IDs exactos de hechizos y auras de cada proc de Mago en 3.3.5a.
+- Mantener en la adaptación de Mago únicamente los mapas de procs válidos para la época de Wrath.
+- Verificar el manejo de rangos y la detección del libro de hechizos y de los espacios de acción en niveles bajos.
+- Revisar todas las llamadas a la API contra el cliente 3.3.5a.
+- Realizar pruebas dentro del juego en niveles representativos del leveo y con los tres árboles de talentos.
+
+## Créditos de esta auditoría
+
+Preparación y adaptación del proyecto: **Charls**.
