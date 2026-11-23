@@ -1,51 +1,54 @@
-# Cheese 3.3.5a — Mage Leveling Edition
+# Cheese 3.3.5a — Mago del nivel 1 al 80
 
-**Project status: adaptation in progress. Not yet a tested release.**
+**Estado del proyecto: adaptación en desarrollo. Todavía no es una versión probada.**
 
-Community project to adapt the Cheese spell-activation overlay addon for **World of Warcraft 3.3.5a**, focusing on the Mage class from level **1 to 80**.
+Proyecto comunitario para adaptar el addon de alertas visuales de activación de hechizos Cheese a **World of Warcraft 3.3.5a**, con enfoque en la clase **Mago**, desde el nivel **1 hasta el 80**.
 
-## Goals
+## Objetivos
 
-- Support Mage characters while leveling from 1 to 80.
-- Detect the character's currently available spells and talents instead of assuming a level-80 spellbook.
-- Cover Arcane, Fire, and Frost where the original addon architecture and 3.3.5a client APIs allow it.
-- Preserve the original overlay behavior and textures wherever possible.
-- Document changes and test reports so the community can contribute.
+- Dar soporte a personajes Mago durante todo el leveo, del nivel 1 al 80.
+- Detectar los hechizos y talentos que el personaje tiene disponibles, sin asumir que posee el libro de hechizos de nivel 80.
+- Cubrir las especializaciones Arcano, Fuego y Escarcha, siempre que la estructura del addon original y las API del cliente 3.3.5a lo permitan.
+- Conservar, en la medida de lo posible, el comportamiento original de las alertas y sus texturas.
+- Documentar los cambios y las pruebas para que la comunidad pueda colaborar.
 
-## Important: current state
+## Estado actual: importante
 
-The supplied archive is an older Cheese build. Its TOC declares interface **30300** and its notes say **Cataclysm Visual Alerts**. This is not proof of full Wrath of the Lich King 3.3.5a compatibility. The spell map also contains entries from several classes and expansions. The project must be audited and tested against an actual 3.3.5a client before claiming that it works from level 1 to 80.
+El archivo original proporcionado corresponde a una versión anterior de Cheese. Su archivo TOC declara la interfaz **30300** y sus notas indican **Cataclysm Visual Alerts**. Esto no demuestra que sea totalmente compatible con Wrath of the Lich King 3.3.5a. Además, el mapa de hechizos contiene entradas de varias clases y expansiones. Antes de afirmar que funciona del nivel 1 al 80, hay que auditarlo y probarlo en un cliente real de 3.3.5a.
 
-No compatibility or leveling support is claimed until the relevant files are committed and tested in-game.
+No se afirma compatibilidad ni soporte completo de leveo hasta que los archivos correspondientes estén adaptados y probados dentro del juego.
 
-## Planned work
+## Próximas tareas
 
-1. Audit the original spell-ID maps and overlay definitions.
-2. Identify Mage proc alerts that exist in Wrath 3.3.5a.
-3. Correct the interface version and API incompatibilities after verification.
-4. Make spell detection independent of a level-80 action-bar layout or spellbook.
-5. Test levels and talent builds across Arcane, Fire, and Frost.
-6. Publish tagged releases with installation instructions and known limitations.
+1. Revisar los mapas originales de IDs de hechizos y las definiciones de alertas.
+2. Identificar los procs de Mago que existen en Wrath 3.3.5a.
+3. Corregir la versión de interfaz y las incompatibilidades de API después de verificarlas.
+4. Hacer que la detección de hechizos no dependa de una barra de acción o un libro de hechizos de nivel 80.
+5. Probar distintos niveles y configuraciones de talentos de Arcano, Fuego y Escarcha.
+6. Publicar versiones etiquetadas con instrucciones de instalación y limitaciones conocidas.
 
-## Installation (when a tested build is published)
+## Instalación (cuando se publique una versión probada)
 
-Extract the `Cheese` folder into:
+Extraé la carpeta `Cheese` en:
 
 ```
 World of Warcraft/Interface/AddOns/
 ```
 
-Enable the addon on the character-selection AddOns screen. Remove or back up older Cheese folders first.
+Activá el addon desde la pantalla de selección de personaje. Antes, eliminá o guardá una copia de cualquier carpeta anterior de Cheese.
 
-## Contributions and bug reports
+## Reportes de errores y colaboraciones
 
-Please include:
-- Client version / server core if known.
-- Character level and Mage specialization.
-- Spell/talent setup.
-- Steps to reproduce and the exact Lua error (if any).
+Al informar un problema, incluí:
+- Versión del cliente y núcleo del servidor, si lo conocés.
+- Nivel del personaje y especialización de Mago.
+- Hechizos y talentos utilizados.
+- Pasos para reproducir el problema y el error Lua exacto, si aparece.
 
-## Credits
+## Créditos
 
-- Original Cheese addon authors: attribution and original license still need to be verified from the upstream distribution.
-- 3.3.5a Mage adaptation: **Charls**.
+- **Addon original:** Cheese. Los nombres de sus autores originales y la licencia deben verificarse en la distribución de origen antes de completar la atribución.
+- **Adaptación para WoW 3.3.5a — Mago nivel 1–80:** **By Charls**.
+- **Proyecto y mantenimiento de esta adaptación:** Charls.
+
+Esta adaptación busca respetar el trabajo original. Si tenés información verificable sobre los autores o la licencia de la versión de origen, podés colaborar para completar los créditos correctamente.
