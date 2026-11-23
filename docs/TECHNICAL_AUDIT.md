@@ -2,30 +2,34 @@
 
 Esta auditoría describe el archivo proporcionado para el proyecto. No significa que el addon haya sido probado dentro del juego.
 
-## Hallazgos
+## Hallazgos del código
 
-- Carpeta del addon: `Cheese/`
-- Archivo TOC: `Cheese.toc`
-- Declaración de interfaz en el TOC: `30300`
-- Notas del TOC: `Cataclysm Visual Alerts`
-- Archivo principal de datos: `Data.lua`
-- Lógica de activación de hechizos: `APISpellActivationOverlay.lua`
-- Gestión de alertas y botones de acción: `SpellActivationOverlay.lua`, `ActionButton.lua`
-- El archivo incluye texturas BLP para las alertas, entre ellas Arcane Missiles, Brain Freeze, Fingers of Frost y Hot Streak.
-- El mapa de hechizos es amplio y contempla varias clases; no es un conjunto de datos exclusivo para Mago en 3.3.5a.
+- Carpeta del addon: Cheese/
+- Archivo TOC: Cheese.toc
+- Declaración de interfaz: 30300
+- Notas del TOC: Cataclysm Visual Alerts
+- Datos de hechizos y alertas: Data.lua
+- Detección de procs y barra de acción: APISpellActivationOverlay.lua
+- Efectos sobre botones: ActionButton.lua
+- El mapa de hechizos de acción contiene entradas de varias clases; no es un addon diseñado únicamente para Mago.
+- El mapa de auras que dispara las alertas es una lista fija de IDs de proc.
+- La inicialización recorre los espacios de acción al iniciar sesión y luego escucha ACTIONBAR_SLOT_CHANGED.
+- En la lógica revisada no aparece una comprobación directa de nivel 80 mediante UnitLevel.
 
-## Qué significa esto
+## Interpretación
 
-Cambiar únicamente el número de interfaz del TOC no garantiza compatibilidad. Es necesario comprobar los IDs de hechizos, los IDs de auras de proc, la detección de las barras de acción, el manejo de eventos y las referencias a texturas contra el cliente 3.3.5a.
+La revisión no demuestra que exista un bloqueo explícito para personajes menores de nivel 80. El comportamiento descrito puede deberse a que los IDs de hechizos o auras no correspondan con los del cliente 3.3.5a, a que falten rangos de bajo nivel o a que el addon no vuelva a actualizar correctamente sus referencias cuando el personaje aprende hechizos.
 
-## Próximos pasos de implementación
+El mapa general de hechizos es una buena base para conservar el soporte multiclase, pero no alcanza por sí solo para afirmar que todas las alertas están cubiertas en Wrath 3.3.5a. Cambiar únicamente el número de interfaz del TOC tampoco garantiza compatibilidad.
 
-- Verificar los IDs exactos de hechizos y auras de cada proc de Mago en 3.3.5a.
-- Mantener en la adaptación de Mago únicamente los mapas de procs válidos para la época de Wrath.
-- Verificar el manejo de rangos y la detección del libro de hechizos y de los espacios de acción en niveles bajos.
-- Revisar todas las llamadas a la API contra el cliente 3.3.5a.
-- Realizar pruebas dentro del juego en niveles representativos del leveo y con los tres árboles de talentos.
+## Próximos pasos
 
-## Créditos de esta auditoría
+1. Contrastar los IDs de cada proc y sus hechizos asociados con 3.3.5a para todas las clases.
+2. Verificar rangos y hechizos aprendidos en distintos niveles.
+3. Revisar y, si hace falta, ampliar el refresco de la barra de acción al aprender hechizos, subir de nivel y cambiar páginas de acción.
+4. Verificar las llamadas a la API contra el cliente 3.3.5a.
+5. Realizar pruebas reales con personajes de distintas clases y niveles.
 
-Preparación y adaptación del proyecto: **Charls**.
+## Créditos
+
+Auditoría, adaptación y mantenimiento del proyecto: **Charls**.
