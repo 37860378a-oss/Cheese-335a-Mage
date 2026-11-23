@@ -1,35 +1,29 @@
-# Auditoría técnica — archivo original de Cheese
+# Auditoría técnica y cambios — Cheese 3.3.5a
 
-Esta auditoría describe el archivo proporcionado para el proyecto. No significa que el addon haya sido probado dentro del juego.
+## Datos observados en el archivo original
 
-## Hallazgos del código
+- El TOC declara `Interface: 30300`, valor correspondiente a WoW 3.3.5.
+- El texto `Cataclysm Visual Alerts` era una descripción; por sí solo no demuestra que el addon necesite Cataclysm.
+- `Data.lua` contiene mapas de hechizos y procs de varias clases.
+- `APISpellActivationOverlay.lua` relaciona hechizos colocados en la barra de acción con auras activas del jugador.
+- El código original utiliza el cuarto retorno de `GetActionInfo` como ID global del hechizo, comportamiento previo a los cambios de API de 4.0.1.
+- `UnitBuff` incluye el ID del aura como retorno 11 desde el parche 3.3.0; el ID debe seguir siendo la referencia principal.
 
-- Carpeta del addon: Cheese/
-- Archivo TOC: Cheese.toc
-- Declaración de interfaz: 30300
-- Notas del TOC: Cataclysm Visual Alerts
-- Datos de hechizos y alertas: Data.lua
-- Detección de procs y barra de acción: APISpellActivationOverlay.lua
-- Efectos sobre botones: ActionButton.lua
-- El mapa de hechizos de acción contiene entradas de varias clases; no es un addon diseñado únicamente para Mago.
-- El mapa de auras que dispara las alertas es una lista fija de IDs de proc.
-- La inicialización recorre los espacios de acción al iniciar sesión y luego escucha ACTIONBAR_SLOT_CHANGED.
-- En la lógica revisada no aparece una comprobación directa de nivel 80 mediante UnitLevel.
+## Cambios experimentales aplicados
 
-## Interpretación
+- Se agregó una tabla de respaldo por nombre localizado, construida a partir de los IDs ya declarados en los mapas originales mediante `GetSpellInfo`.
+- Para los botones de acción, primero se utiliza el ID global si está disponible y corresponde al mapa. Si no, se intenta resolver el nombre con `GetSpellBookItemName` y se busca el ID interno asociado.
+- Para las auras, primero se utiliza el ID devuelto por `UnitBuff`; solo si no es utilizable se intenta resolver por nombre.
+- Se agregó un escaneo completo de la barra de acción ante `SPELLS_CHANGED`, `PLAYER_LEVEL_UP`, `ACTIONBAR_PAGE_CHANGED` y `UPDATE_BONUS_ACTIONBAR`, además del evento original `ACTIONBAR_SLOT_CHANGED`.
+- `ActionButton.lua` utiliza el mismo resolvedor que el escaneo de la barra, evitando que cada parte del addon identifique el hechizo de forma diferente.
 
-La revisión no demuestra que exista un bloqueo explícito para personajes menores de nivel 80. El comportamiento descrito puede deberse a que los IDs de hechizos o auras no correspondan con los del cliente 3.3.5a, a que falten rangos de bajo nivel o a que el addon no vuelva a actualizar correctamente sus referencias cuando el personaje aprende hechizos.
+## Limitaciones y pruebas pendientes
 
-El mapa general de hechizos es una buena base para conservar el soporte multiclase, pero no alcanza por sí solo para afirmar que todas las alertas están cubiertas en Wrath 3.3.5a. Cambiar únicamente el número de interfaz del TOC tampoco garantiza compatibilidad.
-
-## Próximos pasos
-
-1. Contrastar los IDs de cada proc y sus hechizos asociados con 3.3.5a para todas las clases.
-2. Verificar rangos y hechizos aprendidos en distintos niveles.
-3. Revisar y, si hace falta, ampliar el refresco de la barra de acción al aprender hechizos, subir de nivel y cambiar páginas de acción.
-4. Verificar las llamadas a la API contra el cliente 3.3.5a.
-5. Realizar pruebas reales con personajes de distintas clases y niveles.
+- La búsqueda por nombre depende del idioma del cliente y puede encontrar colisiones entre rangos con el mismo nombre. Por eso es un respaldo, no un reemplazo de los IDs.
+- Los mapas originales pueden contener IDs que no correspondan a 3.3.5a o procs que no estén cubiertos.
+- La build necesita pruebas reales con varias clases, niveles y especializaciones. No se debe considerar estable hasta completar esas pruebas.
+- No se pudo ejecutar el cliente WoW desde este entorno; el paquete se entrega como build experimental para prueba manual.
 
 ## Créditos
 
-Auditoría, adaptación y mantenimiento del proyecto: **Charls**.
+Auditoría, adaptación experimental y mantenimiento: **Charls**.
